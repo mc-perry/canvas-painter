@@ -24,7 +24,7 @@ export class HomePage implements AfterViewInit {
     "#4250ad",
     "#802fa3"
   ];
-  lineWidth = 5;
+  lineWidth = 7;
 
   constructor(private plt: Platform) {}
 
@@ -37,6 +37,11 @@ export class HomePage implements AfterViewInit {
   startDrawing(ev) {
     console.log("start: ", ev);
     this.drawing = true;
+    const canvasPosition = this.canvasElement.getBoundingClientRect();
+    console.log(canvasPosition);
+
+    this.saveX = ev.pageX - canvasPosition.x;
+    this.saveY = ev.pageY - canvasPosition.y;
   }
 
   endDrawing() {
@@ -47,5 +52,24 @@ export class HomePage implements AfterViewInit {
   moved(ev) {
     if (!this.drawing) return;
     console.log("moved: ", ev);
+    const canvasPosition = this.canvasElement.getBoundingClientRect();
+    let ctx = this.canvasElement.getContext("2d");
+
+    let currentX = ev.pageX - canvasPosition.x;
+    let currentY = ev.pageY - canvasPosition.y;
+
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = this.selectedColor;
+    ctx.lineWidth = this.lineWidth;
+
+    ctx.beginPath();
+    ctx.moveTo(this.saveX, this.saveY);
+    ctx.lineTo(currentX, currentY);
+    ctx.closePath();
+
+    ctx.stroke();
+
+    this.saveX = currentX;
+    this.saveY = currentY;
   }
 }

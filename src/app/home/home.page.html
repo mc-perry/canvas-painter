@@ -6,7 +6,24 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content [forceOverscroll]="false">
+  <ion-row>
+    <ion-col
+      *ngFor="let color of colors"
+      [style.background]="color"
+      class="color-block"
+      tappable
+      (click)="selectColor(color)"
+    ></ion-col>
+  </ion-row>
+  <ion-radio-group [(ngModel)]="selectedColor">
+    <ion-row>
+      <ion-col *ngFor="let color of colors" class="ion-text-center">
+        <ion-radio [value]="color"></ion-radio>
+      </ion-col>
+    </ion-row>
+  </ion-radio-group>
+
   <canvas
     #imageCanvas
     (mousedown)="startDrawing($event)"
