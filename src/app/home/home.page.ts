@@ -1,5 +1,6 @@
 import { Component, AfterViewInit, ViewChild } from "@angular/core";
-import { Platform } from "@ionic/angular";
+import { Platform, ToastController } from "@ionic/angular";
+import { Base64ToGallery } from "@ionic-native/base64-to-gallery/ngx";
 
 @Component({
   selector: "app-home",
@@ -26,7 +27,11 @@ export class HomePage implements AfterViewInit {
   ];
   lineWidth = 7;
 
-  constructor(private plt: Platform) {}
+  constructor(
+    private plt: Platform,
+    private base64ToGallery: Base64ToGallery,
+    private toastCtrl: ToastController
+  ) {}
 
   ngAfterViewInit() {
     this.canvasElement = this.canvas.nativeElement;
@@ -34,24 +39,24 @@ export class HomePage implements AfterViewInit {
     this.canvasElement.height = 200;
   }
 
+  selectColor(color) {
+    this.selectedColor = color;
+  }
+
   startDrawing(ev) {
-    console.log("start: ", ev);
     this.drawing = true;
     const canvasPosition = this.canvasElement.getBoundingClientRect();
-    console.log(canvasPosition);
 
     this.saveX = ev.pageX - canvasPosition.x;
     this.saveY = ev.pageY - canvasPosition.y;
   }
 
   endDrawing() {
-    console.log("end");
     this.drawing = false;
   }
 
   moved(ev) {
     if (!this.drawing) return;
-    console.log("moved: ", ev);
     const canvasPosition = this.canvasElement.getBoundingClientRect();
     let ctx = this.canvasElement.getContext("2d");
 
@@ -71,5 +76,67 @@ export class HomePage implements AfterViewInit {
 
     this.saveX = currentX;
     this.saveY = currentY;
+  }
+
+  setBackground() {
+    var background = new Image();
+    background.src = "./assets/coupon_pic_lg.png";
+    let ctx = this.canvasElement.getContext("2d");
+
+    background.onload = () => {
+      ctx.drawImage(
+        background,
+        0,
+        0,
+        this.canvasElement.width,
+        this.canvasElement.height
+      );
+    };
+  }
+
+  clearCanvas() {
+    let ctx = this.canvasElement.getContext("2d");
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  }
+
+  exportCanvasImage() {
+    const dataUrl = this.canvasElement.toDataURL();
+    console.log("image: ", dataUrl);
+    this.clearCanvas();
+    if (this.plt.is("cordova")) {
+    } else {
+      var data = dataUrl.split(",")[1];
+      let blob = this.b64toBlob(data, "image/png");
+
+      var a = window.document.createElement("a");
+      a.href = window.URL.createObjectURL(blob);
+      a.download = "canvasimage.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }
+
+  b64toBlob(b64Data, contentType) {
+    contentType = contentType || "";
+    var sliceSize = 512;
+    var byteCharacters = atob(b64Data);
+    var byteArrays = [];
+
+    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+      var byteNumbers = new Array(slice.length);
+      for (var i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+
+      var byteArray = new Uint8Array(byteNumbers);
+
+      byteArrays.push(byteArray);
+    }
+
+    var blob = new Blob(byteArrays, { type: contentType });
+    return blob;
   }
 }
