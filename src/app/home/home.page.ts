@@ -1,6 +1,9 @@
 import { Component, AfterViewInit, ViewChild } from "@angular/core";
 import { Platform, ToastController } from "@ionic/angular";
-import { Base64ToGallery } from "@ionic-native/base64-to-gallery/ngx";
+import {
+  Base64ToGallery,
+  Base64ToGalleryOptions
+} from "@ionic-native/base64-to-gallery/ngx";
 
 @Component({
   selector: "app-home",
@@ -104,6 +107,21 @@ export class HomePage implements AfterViewInit {
     console.log("image: ", dataUrl);
     this.clearCanvas();
     if (this.plt.is("cordova")) {
+      const options: Base64ToGalleryOptions = {
+        prefix: "canvas_",
+        mediaScanner: true
+      };
+
+      this.base64ToGallery.base64ToGallery(dataUrl, options).then(
+        async res => {
+          const toast = await this.toastCtrl.create({
+            message: "Image saved to camera roll.",
+            duration: 2000
+          });
+          toast.present();
+        },
+        err => console.log("Error saving image to gallery ", err)
+      );
     } else {
       var data = dataUrl.split(",")[1];
       let blob = this.b64toBlob(data, "image/png");
